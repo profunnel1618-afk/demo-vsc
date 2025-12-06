@@ -4,162 +4,38 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Virtual School Demo</title>
-  <style>
-    body { font-family: system-ui, Arial, sans-serif; margin: 40px; }
-    main { max-width: 780px; margin: auto; }
-  </style>
-
-  <!-- Chatbase config MUST be defined before loading embed.min.js -->
-  <script>
-    window.chatbaseConfig = {
-      agentId: "XVyXRXhG6vCPUR_KFObQL"
-      // If your dashboard shows chatbotId instead of agentId, use:
-      // chatbotId: "..."
-    };
-  </script>
-  <script
-    src="https://www.chatbase.co/embed.min.js"
-    id="chatbase-script"
-    defer
-  ></script>
 </head>
 <body>
-  <main>
-    <h1>Virtual School Demo</h1>
-    <p>Test the EduSmartBot on this page.</p>
-  </main>
+  <h1>Virtual School Demo</h1>
+  <p>Test the EduSmartBot on this page.</p>
 
-  <!-- Client-side Custom Form schema -->
   <script>
-  (function() {
-    'use strict';
-
-    const ACTION_NAME = 'pre_enrolment_form';
-    let registered = false;
-
-    // Wait for Chatbase to expose registerFormSchema
-    function waitForChatbase(callback, maxAttempts = 50, interval = 120) {
-      let attempts = 0;
-      const poll = setInterval(() => {
-        attempts++;
-        if (
-          typeof window.chatbase === 'function' &&
-          typeof window.chatbase.registerFormSchema === 'function'
-        ) {
-          clearInterval(poll);
-          callback();
-        } else if (attempts >= maxAttempts) {
-          clearInterval(poll);
-          console.error('[chatbase] Timed out waiting for registerFormSchema');
-        }
-      }, interval);
-    }
-
-    // UI schema: first_name / last_name on screen,
-    // but we send full_name to the backend via transformPayload
-    function preEnrolmentSchema() {
-      return {
-        fields: [
-          {
-            type: 'text',
-            name: 'first_name',
-            label: 'First name',
-            placeholder: 'Enter your first name',
-            validation: {
-              required: { value: true, message: 'First name is required' }
-            }
-          },
-          {
-            type: 'text',
-            name: 'last_name',
-            label: 'Last name',
-            placeholder: 'Enter your last name',
-            validation: {
-              required: { value: true, message: 'Last name is required' }
-            }
-          },
-          {
-            type: 'text',
-            name: 'email',
-            label: 'Email',
-            placeholder: 'you@example.com',
-            validation: {
-              required: { value: true, message: 'Email is required' }
-            }
-          },
-          {
-            type: 'text',
-            name: 'phone',
-            label: 'Phone (+CC…)',
-            placeholder: 'e.g., +971501234567',
-            validation: {
-              required: { value: true, message: 'Phone number is required' }
-            }
-          },
-          {
-            type: 'text',
-            name: 'program_interest',
-            label: 'Target program',
-            placeholder: 'e.g., Business Administration',
-            validation: {
-              required: { value: true, message: 'Program is required' }
-            }
-          },
-          {
-            type: 'text',
-            name: 'intake_month',
-            label: 'Desired intake (e.g., Sep 2025)',
-            placeholder: 'e.g., Sep 2025',
-            validation: {
-              required: { value: true, message: 'Desired intake is required' }
-            }
-          },
-          {
-            type: 'checkbox',
-            name: 'consent',
-            label: 'I agree to be contacted',
-            validation: {
-              required: { value: true, message: 'You must agree to be contacted' }
-            }
+    (function(){
+      if(!window.chatbase||window.chatbase("getState")!=="initialized"){
+        window.chatbase=(...arguments)=>{
+          if(!window.chatbase.q){window.chatbase.q=[]}
+          window.chatbase.q.push(arguments)
+        };
+        window.chatbase=new Proxy(window.chatbase,{
+          get(target,prop){
+            if(prop==="q"){return target.q}
+            return(...args)=>target(prop,...args)
           }
-        ],
-        submitButtonText: 'Submit pre-enrolment',
-        successMessage: "Thanks! We'll contact you shortly.",
-        errorMessage: 'Something went wrong. Please try again.',
-
-        // Transform first_name + last_name → full_name before sending to the server action
-        transformPayload: (values) => {
-          const full_name =
-            [values.first_name || '', values.last_name || ''].join(' ').trim();
-          return {
-            full_name,
-            email: values.email,
-            phone: values.phone,
-            program_interest: values.program_interest,
-            intake_month: values.intake_month,
-            consent: !!values.consent
-          };
-        }
-      };
-    }
-
-    function registerSchema() {
-      if (registered) return;
-      try {
-        window.chatbase.registerFormSchema(ACTION_NAME, preEnrolmentSchema);
-        registered = true;
-        console.log('[chatbase] Schema registered for "' + ACTION_NAME + '"');
-      } catch (err) {
-        console.error('[chatbase] Registration failed:', err);
+        })
       }
-    }
-
-    if (document.readyState === 'complete') {
-      waitForChatbase(registerSchema);
-    } else {
-      window.addEventListener('load', () => waitForChatbase(registerSchema));
-    }
-  })();
+      const onLoad=function(){
+        const script=document.createElement("script");
+        script.src="https://vschool.saasaigency.com/embed.min.js";
+        script.id="XVyXRXhG6vCPUR_KFObQL";
+        script.domain="vschool.saasaigency.com";
+        document.body.appendChild(script)
+      };
+      if(document.readyState==="complete"){
+        onLoad()
+      }else{
+        window.addEventListener("load",onLoad)
+      }
+    })();
   </script>
 </body>
 </html>
