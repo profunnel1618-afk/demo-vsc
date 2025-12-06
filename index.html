@@ -15,92 +15,113 @@
     <p>Test the EduSmartBot on this page.</p>
   </main>
 
-  <!-- STEP 1: Set up the schema registration FIRST -->
+  <!-- STEP 1: Initialize chatbase queue + register action BEFORE embed loads -->
   <script>
-    // Initialize chatbase queue before embed loads
-    if (!window.chatbase || window.chatbase("getState") !== "initialized") {
-      window.chatbase = (...args) => {
-        if (!window.chatbase.q) window.chatbase.q = [];
-        window.chatbase.q.push(args);
-      };
-      window.chatbase = new Proxy(window.chatbase, {
-        get(target, prop) {
-          if (prop === "q") return target.q;
-          return (...args) => target(prop, ...args);
-        }
-      });
-    }
-
-    // Register schema immediately (queued until embed loads)
-    window.chatbase.registerFormSchema({
-      pre_enrolment_form: async (args, user) => {
-        console.log('[chatbase] Form triggered with args:', args);
-        return {
-          fields: [
-            {
-              name: 'first_name',
-              label: 'First name',
-              type: 'text',
-              placeholder: 'Enter your first name',
-              validation: { required: { value: true, message: 'First name is required' } }
-            },
-            {
-              name: 'last_name',
-              label: 'Last name',
-              type: 'text',
-              placeholder: 'Enter your last name',
-              validation: { required: { value: true, message: 'Last name is required' } }
-            },
-            {
-              name: 'email',
-              label: 'Email',
-              type: 'text',
-              placeholder: 'you@example.com',
-              validation: { required: { value: true, message: 'Email is required' } }
-            },
-            {
-              name: 'phone',
-              label: 'Phone (+CC…)',
-              type: 'text',
-              placeholder: 'e.g., +971501234567',
-              validation: { required: { value: true, message: 'Phone number is required' } }
-            },
-            {
-              name: 'program_interest',
-              label: 'Target program',
-              type: 'text',
-              placeholder: 'e.g., Business Administration',
-              validation: { required: { value: true, message: 'Program is required' } }
-            },
-            {
-              name: 'intake_month',
-              label: 'Desired intake (e.g., Sep 2025)',
-              type: 'text',
-              placeholder: 'e.g., Sep 2025',
-              validation: { required: { value: true, message: 'Desired intake is required' } }
-            },
-            {
-              name: 'consent',
-              label: 'I agree to be contacted',
-              type: 'checkbox',
-              validation: { required: { value: true, message: 'You must agree to be contacted' } }
-            }
-          ],
-          submitButtonText: 'Submit pre-enrolment',
-          successMessage: "Thanks! We'll contact you shortly.",
-          errorMessage: 'Something went wrong. Please try again.',
-          transformPayload: (values) => ({
-            full_name: [values.first_name || '', values.last_name || ''].join(' ').trim(),
-            email: values.email,
-            phone: values.phone,
-            program_interest: values.program_interest,
-            intake_month: values.intake_month,
-            consent: !!values.consent
-          })
+    (function() {
+      // Initialize chatbase queue
+      if (!window.chatbase || window.chatbase("getState") !== "initialized") {
+        window.chatbase = (...args) => {
+          if (!window.chatbase.q) window.chatbase.q = [];
+          window.chatbase.q.push(args);
         };
+        window.chatbase = new Proxy(window.chatbase, {
+          get(target, prop) {
+            if (prop === "q") return target.q;
+            return (...args) => target(prop, ...args);
+          }
+        });
       }
-    });
-    console.log('[chatbase] Schema queued for pre_enrolment_form');
+
+      // Try BOTH registration methods
+      const formSchema = {
+        fields: [
+          {
+            name: 'full_name',
+            label: 'Full Name',
+            type: 'text',
+            placeholder: 'Enter your full name',
+            validation: { required: { value: true, message: 'Full name is required' } }
+          },
+          {
+            name: 'email',
+            label: 'Email',
+            type: 'text',
+            placeholder: 'you@example.com',
+            validation: { required: { value: true, message: 'Email is required' } }
+          },
+          {
+            name: 'phone',
+            label: 'Phone (+CC…)',
+            type: 'text',
+            placeholder: 'e.g., +971501234567',
+            validation: { required: { value: true, message: 'Phone number is required' } }
+          },
+          {
+            name: 'program_interest',
+            label: 'Target Program',
+            type: 'text',
+            placeholder: 'e.g., Business Administration',
+            validation: { required: { value: true, message: 'Program is required' } }
+          },
+          {
+            name: 'intake_month',
+            label: 'Desired Intake',
+            type: 'text',
+            placeholder: 'e.g., Sep 2025',
+            validation: { required: { value: true, message: 'Intake month is required' } }
+          },
+          {
+            name: 'consent',
+            label: 'I agree to be contacted by the admissions team',
+            type: 'checkbox',
+            validation: { required: { value: true, message: 'You must agree to be contacted' } }
+          }
+        ],
+        submitButtonText: 'Submit Pre-Enrolment',
+        successMessage: "Thanks! Our admissions team will contact you shortly.",
+        errorMessage: 'Something went wrong. Please try again.'
+      };
+
+      // Method 1: registerFormSchema (as object map with async function)
+      try {
+        window.chatbase.registerFormSchema({
+          pre_enrolment_form: async (args, user) => {
+            console.log('[chatbase] registerFormSchema triggered:', args, user);
+            return formSchema;
+          }
+        });
+        console.log('[chatbase] ✅ registerFormSchema queued');
+      } catch (e) {
+        console.error('[chatbase] registerFormSchema failed:', e);
+      }
+
+      // Method 2: registerAction (alternative API)
+      try {
+        window.chatbase.registerAction({
+          pre_enrolment_form: async (args, user) => {
+            console.log('[chatbase] registerAction triggered:', args, user);
+            return formSchema;
+          }
+        });
+        console.log('[chatbase] ✅ registerAction queued');
+      } catch (e) {
+        console.error('[chatbase] registerAction failed:', e);
+      }
+
+      // Method 3: on('action') event listener
+      try {
+        window.chatbase.on('action', (action) => {
+          console.log('[chatbase] Action event received:', action);
+          if (action.name === 'pre_enrolment_form') {
+            return formSchema;
+          }
+        });
+        console.log('[chatbase] ✅ action listener queued');
+      } catch (e) {
+        console.error('[chatbase] on action failed:', e);
+      }
+
+    })();
   </script>
 
   <!-- STEP 2: Chatbase config -->
@@ -111,12 +132,30 @@
     };
   </script>
 
-  <!-- STEP 3: Load embed AFTER schema is queued -->
+  <!-- STEP 3: Load embed -->
   <script
     src="https://www.chatbase.co/embed.min.js"
     chatbotId="XVyXRXhG6vCPUR_KFObQL"
     domain="www.chatbase.co"
     defer>
+  </script>
+
+  <!-- STEP 4: Debug after load -->
+  <script>
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        console.log('[debug] window.chatbase:', window.chatbase);
+        console.log('[debug] chatbase.q:', window.chatbase?.q);
+        
+        // Check what methods are available
+        if (typeof window.chatbase === 'function') {
+          console.log('[debug] Available chatbase methods:');
+          for (let key in window.chatbase) {
+            console.log('  -', key, typeof window.chatbase[key]);
+          }
+        }
+      }, 3000);
+    });
   </script>
 </body>
 </html>
