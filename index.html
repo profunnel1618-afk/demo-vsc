@@ -4,12 +4,18 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Virtual School Demo</title>
+  <style>
+    body { font-family: system-ui, Arial, sans-serif; margin: 40px; }
+    main { max-width: 780px; margin: auto; }
+  </style>
 </head>
 <body>
-  <h1>Virtual School Demo</h1>
-  <p>Test the EduSmartBot on this page.</p>
+  <main>
+    <h1>Virtual School Demo</h1>
+    <p>Test the EduSmartBot on this page.</p>
+  </main>
 
-  <!-- Try the standard Chatbase embed format -->
+  <!-- Chatbase Embed (working format) -->
   <script>
     window.embeddedChatbotConfig = {
       chatbotId: "XVyXRXhG6vCPUR_KFObQL",
@@ -21,6 +27,114 @@
     chatbotId="XVyXRXhG6vCPUR_KFObQL"
     domain="www.chatbase.co"
     defer>
+  </script>
+
+  <!-- Custom Form Schema -->
+  <script>
+  (function() {
+    'use strict';
+
+    const ACTION_NAME = 'pre_enrolment_form';
+    let registered = false;
+
+    function waitForChatbase(callback, maxAttempts = 100, interval = 200) {
+      let attempts = 0;
+      const poll = setInterval(() => {
+        attempts++;
+        if (
+          typeof window.chatbase === 'function' &&
+          typeof window.chatbase.registerFormSchema === 'function'
+        ) {
+          clearInterval(poll);
+          callback();
+        } else if (attempts >= maxAttempts) {
+          clearInterval(poll);
+          console.error('[chatbase] Timed out waiting for registerFormSchema');
+        }
+      }, interval);
+    }
+
+    function preEnrolmentSchema() {
+      return {
+        fields: [
+          {
+            type: 'text',
+            name: 'first_name',
+            label: 'First name',
+            placeholder: 'Enter your first name',
+            validation: { required: { value: true, message: 'First name is required' } }
+          },
+          {
+            type: 'text',
+            name: 'last_name',
+            label: 'Last name',
+            placeholder: 'Enter your last name',
+            validation: { required: { value: true, message: 'Last name is required' } }
+          },
+          {
+            type: 'text',
+            name: 'email',
+            label: 'Email',
+            placeholder: 'you@example.com',
+            validation: { required: { value: true, message: 'Email is required' } }
+          },
+          {
+            type: 'text',
+            name: 'phone',
+            label: 'Phone (+CC…)',
+            placeholder: 'e.g., +971501234567',
+            validation: { required: { value: true, message: 'Phone number is required' } }
+          },
+          {
+            type: 'text',
+            name: 'program_interest',
+            label: 'Target program',
+            placeholder: 'e.g., Business Administration',
+            validation: { required: { value: true, message: 'Program is required' } }
+          },
+          {
+            type: 'text',
+            name: 'intake_month',
+            label: 'Desired intake (e.g., Sep 2025)',
+            placeholder: 'e.g., Sep 2025',
+            validation: { required: { value: true, message: 'Desired intake is required' } }
+          },
+          {
+            type: 'checkbox',
+            name: 'consent',
+            label: 'I agree to be contacted',
+            validation: { required: { value: true, message: 'You must agree to be contacted' } }
+          }
+        ],
+        submitButtonText: 'Submit pre-enrolment',
+        successMessage: "Thanks! We'll contact you shortly.",
+        errorMessage: 'Something went wrong. Please try again.',
+        transformPayload: (values) => ({
+          full_name: [values.first_name || '', values.last_name || ''].join(' ').trim(),
+          email: values.email,
+          phone: values.phone,
+          program_interest: values.program_interest,
+          intake_month: values.intake_month,
+          consent: !!values.consent
+        })
+      };
+    }
+
+    function registerSchema() {
+      if (registered) return;
+      try {
+        window.chatbase.registerFormSchema(ACTION_NAME, preEnrolmentSchema);
+        registered = true;
+        console.log('[chatbase] Schema registered for "' + ACTION_NAME + '"');
+      } catch (err) {
+        console.error('[chatbase] Registration failed:', err);
+      }
+    }
+
+    window.addEventListener('load', () => {
+      setTimeout(() => waitForChatbase(registerSchema), 1000);
+    });
+  })();
   </script>
 </body>
 </html>
