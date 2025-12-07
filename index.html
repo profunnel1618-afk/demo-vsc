@@ -15,10 +15,9 @@
     <p>Test the EduSmartBot on this page.</p>
   </main>
 
-  <!-- STEP 1: Initialize chatbase queue + register action BEFORE embed loads -->
+  <!-- Register form schema BEFORE embed loads -->
   <script>
     (function() {
-      // Initialize chatbase queue
       if (!window.chatbase || window.chatbase("getState") !== "initialized") {
         window.chatbase = (...args) => {
           if (!window.chatbase.q) window.chatbase.q = [];
@@ -32,99 +31,68 @@
         });
       }
 
-      // Try BOTH registration methods
-      const formSchema = {
-        fields: [
-          {
-            name: 'full_name',
-            label: 'Full Name',
-            type: 'text',
-            placeholder: 'Enter your full name',
-            validation: { required: { value: true, message: 'Full name is required' } }
-          },
-          {
-            name: 'email',
-            label: 'Email',
-            type: 'text',
-            placeholder: 'you@example.com',
-            validation: { required: { value: true, message: 'Email is required' } }
-          },
-          {
-            name: 'phone',
-            label: 'Phone (+CC…)',
-            type: 'text',
-            placeholder: 'e.g., +971501234567',
-            validation: { required: { value: true, message: 'Phone number is required' } }
-          },
-          {
-            name: 'program_interest',
-            label: 'Target Program',
-            type: 'text',
-            placeholder: 'e.g., Business Administration',
-            validation: { required: { value: true, message: 'Program is required' } }
-          },
-          {
-            name: 'intake_month',
-            label: 'Desired Intake',
-            type: 'text',
-            placeholder: 'e.g., Sep 2025',
-            validation: { required: { value: true, message: 'Intake month is required' } }
-          },
-          {
-            name: 'consent',
-            label: 'I agree to be contacted by the admissions team',
-            type: 'checkbox',
-            validation: { required: { value: true, message: 'You must agree to be contacted' } }
-          }
-        ],
-        submitButtonText: 'Submit Pre-Enrolment',
-        successMessage: "Thanks! Our admissions team will contact you shortly.",
-        errorMessage: 'Something went wrong. Please try again.'
-      };
-
-      // Method 1: registerFormSchema (as object map with async function)
-      try {
-        window.chatbase.registerFormSchema({
-          pre_enrolment_form: async (args, user) => {
-            console.log('[chatbase] registerFormSchema triggered:', args, user);
-            return formSchema;
-          }
-        });
-        console.log('[chatbase] ✅ registerFormSchema queued');
-      } catch (e) {
-        console.error('[chatbase] registerFormSchema failed:', e);
-      }
-
-      // Method 2: registerAction (alternative API)
-      try {
-        window.chatbase.registerAction({
-          pre_enrolment_form: async (args, user) => {
-            console.log('[chatbase] registerAction triggered:', args, user);
-            return formSchema;
-          }
-        });
-        console.log('[chatbase] ✅ registerAction queued');
-      } catch (e) {
-        console.error('[chatbase] registerAction failed:', e);
-      }
-
-      // Method 3: on('action') event listener
-      try {
-        window.chatbase.on('action', (action) => {
-          console.log('[chatbase] Action event received:', action);
-          if (action.name === 'pre_enrolment_form') {
-            return formSchema;
-          }
-        });
-        console.log('[chatbase] ✅ action listener queued');
-      } catch (e) {
-        console.error('[chatbase] on action failed:', e);
-      }
-
+      // Client-side form - collects data and RETURNS it to Chatbase
+      window.chatbase.registerFormSchema({
+        pre_enrolment_form: async (args, user) => {
+          console.log('[chatbase] Form triggered with args:', args);
+          
+          return {
+            fields: [
+              {
+                name: 'full_name',
+                label: 'Full Name',
+                type: 'text',
+                placeholder: 'Enter your full name',
+                validation: { required: { value: true, message: 'Full name is required' } }
+              },
+              {
+                name: 'email',
+                label: 'Email',
+                type: 'text',
+                placeholder: 'you@example.com',
+                validation: { required: { value: true, message: 'Email is required' } }
+              },
+              {
+                name: 'phone',
+                label: 'Phone (+CC…)',
+                type: 'text',
+                placeholder: 'e.g., +971501234567',
+                validation: { required: { value: true, message: 'Phone is required' } }
+              },
+              {
+                name: 'program_interest',
+                label: 'Target Program',
+                type: 'text',
+                placeholder: 'e.g., Business Administration',
+                validation: { required: { value: true, message: 'Program is required' } }
+              },
+              {
+                name: 'intake_month',
+                label: 'Desired Intake',
+                type: 'text',
+                placeholder: 'e.g., Sep 2025',
+                validation: { required: { value: true, message: 'Intake is required' } }
+              },
+              {
+                name: 'consent',
+                label: 'I agree to be contacted by the admissions team',
+                type: 'checkbox',
+                validation: { required: { value: true, message: 'Consent is required' } }
+              }
+            ],
+            submitButtonText: 'Submit Application',
+            successMessage: "Thanks! Submitting your application...",
+            errorMessage: 'Something went wrong. Please try again.'
+            // Data is automatically returned to Chatbase after form submission
+          };
+        }
+      });
+      
+      console.log('[chatbase] ✅ Form schema registered for pre_enrolment_form');
     })();
   </script>
 
-  <!-- STEP 2: Chatbase config -->
+  <!-- Chatbase config -->
   <script>
     window.embeddedChatbotConfig = {
       chatbotId: "XVyXRXhG6vCPUR_KFObQL",
@@ -132,30 +100,12 @@
     };
   </script>
 
-  <!-- STEP 3: Load embed -->
+  <!-- Load embed -->
   <script
     src="https://www.chatbase.co/embed.min.js"
     chatbotId="XVyXRXhG6vCPUR_KFObQL"
     domain="www.chatbase.co"
     defer>
-  </script>
-
-  <!-- STEP 4: Debug after load -->
-  <script>
-    window.addEventListener('load', () => {
-      setTimeout(() => {
-        console.log('[debug] window.chatbase:', window.chatbase);
-        console.log('[debug] chatbase.q:', window.chatbase?.q);
-        
-        // Check what methods are available
-        if (typeof window.chatbase === 'function') {
-          console.log('[debug] Available chatbase methods:');
-          for (let key in window.chatbase) {
-            console.log('  -', key, typeof window.chatbase[key]);
-          }
-        }
-      }, 3000);
-    });
   </script>
 </body>
 </html>
