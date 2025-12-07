@@ -15,7 +15,6 @@
     <p>Test the EduSmartBot on this page.</p>
   </main>
 
-  <!-- Register form schema BEFORE embed loads -->
   <script>
     (function() {
       if (!window.chatbase || window.chatbase("getState") !== "initialized") {
@@ -31,11 +30,10 @@
         });
       }
 
-      // Client-side form - collects data and RETURNS it to Chatbase
+      // NEW ACTION NAME: enrollment_form
       window.chatbase.registerFormSchema({
-        pre_enrolment_form: async (args, user) => {
-          console.log('[chatbase] Form triggered with args:', args);
-          
+        enrollment_form: async (args, user) => {
+          console.log('[chatbase] ✅ Form triggered:', args);
           return {
             fields: [
               {
@@ -75,24 +73,21 @@
               },
               {
                 name: 'consent',
-                label: 'I agree to be contacted by the admissions team',
+                label: 'I agree to be contacted',
                 type: 'checkbox',
                 validation: { required: { value: true, message: 'Consent is required' } }
               }
             ],
             submitButtonText: 'Submit Application',
-            successMessage: "Thanks! Submitting your application...",
+            successMessage: "Thanks! Our admissions team will contact you shortly.",
             errorMessage: 'Something went wrong. Please try again.'
-            // Data is automatically returned to Chatbase after form submission
           };
         }
       });
-      
-      console.log('[chatbase] ✅ Form schema registered for pre_enrolment_form');
+      console.log('[chatbase] Schema queued for enrollment_form');
     })();
   </script>
 
-  <!-- Chatbase config -->
   <script>
     window.embeddedChatbotConfig = {
       chatbotId: "XVyXRXhG6vCPUR_KFObQL",
@@ -100,7 +95,6 @@
     };
   </script>
 
-  <!-- Load embed -->
   <script
     src="https://www.chatbase.co/embed.min.js"
     chatbotId="XVyXRXhG6vCPUR_KFObQL"
