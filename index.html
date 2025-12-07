@@ -15,92 +15,18 @@
     <p>Test the EduSmartBot on this page.</p>
   </main>
 
-  <!-- Step 1: Chatbase config -->
+  <!-- ONLY the embed, NO custom form code -->
   <script>
     window.embeddedChatbotConfig = {
       chatbotId: "XVyXRXhG6vCPUR_KFObQL",
       domain: "www.chatbase.co"
     };
   </script>
-
-  <!-- Step 2: Load Chatbase embed -->
   <script
     src="https://www.chatbase.co/embed.min.js"
     chatbotId="XVyXRXhG6vCPUR_KFObQL"
     domain="www.chatbase.co"
     defer>
-  </script>
-
-  <!-- Step 3: Register form schema (SIMPLIFIED) -->
-  <script>
-    const checkChatbase = setInterval(() => {
-      if (window.chatbase && typeof window.chatbase.registerFormSchema === 'function') {
-        clearInterval(checkChatbase);
-        
-        try {
-          window.chatbase.registerFormSchema({
-            enrollment_form: async (args, user) => {
-              console.log('[chatbase] enrollment_form triggered');
-              
-              return {
-                fields: [
-                  {
-                    name: "full_name",
-                    label: "Full Name",
-                    type: "text",
-                    placeholder: "Enter your full name",
-                    required: true
-                  },
-                  {
-                    name: "email",
-                    label: "Email Address",
-                    type: "text",
-                    placeholder: "you@example.com",
-                    required: true
-                  },
-                  {
-                    name: "phone",
-                    label: "Phone Number",
-                    type: "text",
-                    placeholder: "+971501234567",
-                    required: true
-                  },
-                  {
-                    name: "program_interest",
-                    label: "Program of Interest",
-                    type: "text",
-                    placeholder: "e.g., Business Administration",
-                    required: true
-                  },
-                  {
-                    name: "intake_month",
-                    label: "Desired Intake",
-                    type: "text",
-                    placeholder: "e.g., September 2025",
-                    required: true
-                  },
-                  {
-                    name: "consent",
-                    label: "I agree to be contacted by the admissions team",
-                    type: "checkbox",
-                    required: true
-                  }
-                ],
-                submitButtonText: "Submit Application",
-                successMessage: "Thanks! Your application has been submitted.",
-                errorMessage: "Failed to submit. Please try again."
-              };
-            }
-          });
-          
-          console.log('[chatbase] ✅ Form schema registered successfully');
-        } catch (error) {
-          console.error('[chatbase] ❌ Error registering form:', error);
-        }
-      }
-    }, 200);
-    
-    setTimeout(() => clearInterval(checkChatbase), 15000);
   </script>
 </body>
 </html>
