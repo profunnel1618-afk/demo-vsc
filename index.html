@@ -31,130 +31,75 @@
     defer>
   </script>
 
-  <!-- Step 3: Register form schema (per official docs) -->
+  <!-- Step 3: Register form schema (SIMPLIFIED) -->
   <script>
-    // Wait for chatbase to load, then register form
     const checkChatbase = setInterval(() => {
       if (window.chatbase && typeof window.chatbase.registerFormSchema === 'function') {
         clearInterval(checkChatbase);
         
-        window.chatbase.registerFormSchema({
-          enrollment_form: async (args, user) => {
-            console.log('[chatbase] ✅ enrollment_form triggered');
-            console.log('[chatbase] args:', args);
-            console.log('[chatbase] user:', user);
-            
-            // Pre-populate from user metadata if available
-            const defaultEmail = user?.user_metadata?.email || '';
-            const defaultName = user?.user_metadata?.name || '';
-            
-            return {
-              fields: [
-                {
-                  name: "full_name",
-                  label: "Full Name",
-                  type: "text",
-                  defaultValue: defaultName,
-                  placeholder: "Enter your full name",
-                  validation: {
-                    required: {
-                      value: true,
-                      message: "Full name is required"
-                    },
-                    minLength: {
-                      value: 2,
-                      message: "Name must be at least 2 characters"
-                    }
+        try {
+          window.chatbase.registerFormSchema({
+            enrollment_form: async (args, user) => {
+              console.log('[chatbase] enrollment_form triggered');
+              
+              return {
+                fields: [
+                  {
+                    name: "full_name",
+                    label: "Full Name",
+                    type: "text",
+                    placeholder: "Enter your full name",
+                    required: true
+                  },
+                  {
+                    name: "email",
+                    label: "Email Address",
+                    type: "text",
+                    placeholder: "you@example.com",
+                    required: true
+                  },
+                  {
+                    name: "phone",
+                    label: "Phone Number",
+                    type: "text",
+                    placeholder: "+971501234567",
+                    required: true
+                  },
+                  {
+                    name: "program_interest",
+                    label: "Program of Interest",
+                    type: "text",
+                    placeholder: "e.g., Business Administration",
+                    required: true
+                  },
+                  {
+                    name: "intake_month",
+                    label: "Desired Intake",
+                    type: "text",
+                    placeholder: "e.g., September 2025",
+                    required: true
+                  },
+                  {
+                    name: "consent",
+                    label: "I agree to be contacted by the admissions team",
+                    type: "checkbox",
+                    required: true
                   }
-                },
-                {
-                  name: "email",
-                  label: "Email Address",
-                  type: "email",
-                  defaultValue: defaultEmail,
-                  placeholder: "you@example.com",
-                  validation: {
-                    required: {
-                      value: true,
-                      message: "Email is required"
-                    },
-                    pattern: {
-                      value: "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
-                      message: "Please enter a valid email address"
-                    }
-                  }
-                },
-                {
-                  name: "phone",
-                  label: "Phone Number",
-                  type: "phone",
-                  placeholder: "+971501234567",
-                  validation: {
-                    required: {
-                      value: true,
-                      message: "Phone number is required"
-                    }
-                  }
-                },
-                {
-                  name: "program_interest",
-                  label: "Program of Interest",
-                  type: "select",
-                  options: [
-                    { value: "business", label: "Business Administration" },
-                    { value: "computer_science", label: "Computer Science" },
-                    { value: "engineering", label: "Engineering" },
-                    { value: "arts", label: "Arts & Humanities" },
-                    { value: "other", label: "Other" }
-                  ],
-                  validation: {
-                    required: {
-                      value: true,
-                      message: "Please select a program"
-                    }
-                  }
-                },
-                {
-                  name: "intake_month",
-                  label: "Desired Intake",
-                  type: "select",
-                  options: [
-                    { value: "sep_2025", label: "September 2025" },
-                    { value: "jan_2026", label: "January 2026" },
-                    { value: "sep_2026", label: "September 2026" }
-                  ],
-                  validation: {
-                    required: {
-                      value: true,
-                      message: "Please select an intake"
-                    }
-                  }
-                },
-                {
-                  name: "consent",
-                  label: "I agree to be contacted by the admissions team",
-                  type: "checkbox",
-                  validation: {
-                    required: {
-                      value: true,
-                      message: "You must agree to be contacted"
-                    }
-                  }
-                }
-              ],
-              submitButtonText: "Submit Application",
-              showLabels: true,
-              successMessage: "Thanks! Your enrollment application has been submitted. Our admissions team will contact you shortly.",
-              errorMessage: "Failed to submit application. Please try again."
-            };
-          }
-        });
-        
-        console.log('[chatbase] ✅ Form schema registered for enrollment_form');
+                ],
+                submitButtonText: "Submit Application",
+                successMessage: "Thanks! Your application has been submitted.",
+                errorMessage: "Failed to submit. Please try again."
+              };
+            }
+          });
+          
+          console.log('[chatbase] ✅ Form schema registered successfully');
+        } catch (error) {
+          console.error('[chatbase] ❌ Error registering form:', error);
+        }
       }
     }, 200);
     
-    // Timeout after 15 seconds
     setTimeout(() => clearInterval(checkChatbase), 15000);
   </script>
 </body>
